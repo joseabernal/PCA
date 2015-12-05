@@ -31,12 +31,15 @@ P5 = [48; 50];
 % Initial vector b to be used in Ax = b for feature normalization
 b0 = [P1; P2; P3; P4; P5];
 
+% Fixed image size
+blockSize = 64;
+
 % Calculate the affine transformation
 F = FeatureNormalization(features, b0, 0.01);
 
 imageFiles = [dir(fullfile(folder, '*.jpg')); dir(fullfile(folder, '*.JPG'))];
 images = zeros(length(imageFiles), 320, 320);
-processedImages = zeros(length(imageFiles), 64);
+D = zeros(length(imageFiles), blockSize*blockSize);
 
 figure(),
 hold on
@@ -46,7 +49,45 @@ for k = 1 : length(imageFiles)
     I = im2double(rgb2gray(imread(fullFileName)));
     images(k, 1:size(I, 1), 1:size(I, 2)) = I;
     
-    processedImages = ApplyTransform(I, features(k, :), F);
+    processedImage = ProcessImage(I, features(k, :), F, blockSize);
+    D(k, :) = processedImage(:)';
 end
 
-%database = CalculateDatabase(images, features);
+%% Database normalization and reduction
+
+for i = 1:size(D, 2)
+    Dnorm(:, i) = D(:, i) - mean(D(:, i));
+end
+
+S = cov(Dnorm);
+
+% For face recognition, k < 100 (suggested by the guide)
+k = 75; %we should iterate over this value according to sum^k(eigen)/sum^n(eigen) >= 95%
+[U, V] = eigs(S, k);
+
+reducedD = Dnorm * U;
+
+%% test section
+for i = 1 : 5
+    testImage = D(i*10, :);
+    testImage = (testImage - mean(testImage));
+
+    % Reduce the testImage
+    reducedTestImage = testImage * U;
+
+    bestFace = 0;
+    bestEuc = Inf;
+    values = zeros(1, size(D, 1));
+    
+    % Find the best match
+    for j = 1:size(D, 1)
+        euc = norm(reducedTestImage - reducedD(j, :));
+        if (bestEuc > euc)
+            bestFace = j;
+            bestEuc = euc;
+        end
+        values(j) = euc;
+    end
+    
+    display([bestFace i*10])
+end
