@@ -17,9 +17,9 @@ function processedImage = ProcessImage(image, feature, F, blockSize)
     b = [transfMatrix(5) transfMatrix(6)];
     Ainv = pinv(A);
 
-    newImage = zeros(64, 64);
-    for i = 1:64
-        for j = 1:64
+    newImage = zeros(blockSize, blockSize);
+    for i = 1:size(newImage, 1)
+        for j = 1:size(newImage, 2)
             p = Ainv * ([i j] - b)';
             x = floor(p(1));
             y = floor(p(2));
