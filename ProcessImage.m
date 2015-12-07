@@ -1,9 +1,4 @@
 function processedImage = ProcessImage(image, feature, F, blockSize)
-    % Database of images. The size of this matrix is N x M where N is the
-    % number of images and M the default image size.
-    
-    %database = zeros(length(images), blockSize * blockSize);
-
     % Creating the spatial transformation structure
     % Reference : 
     % http://www.mathworks.com/help/images/ref/imtransform.html
@@ -11,17 +6,30 @@ function processedImage = ProcessImage(image, feature, F, blockSize)
     FM = CreateFeatureMatrix(feature);
     transfMatrix = CalculateAffineTransform(FM, F);
     
-    FEATURES = (FM * transfMatrix);
-    plot(FEATURES(1), FEATURES(2), 'ok')
-    plot(FEATURES(3), FEATURES(4), 'oy')
-    plot(FEATURES(5), FEATURES(6), 'or')
-    plot(FEATURES(7), FEATURES(8), 'ob')
-    plot(FEATURES(9), FEATURES(10), 'oc')
+    FEATURE = (FM * transfMatrix);
+    %plot(FEATURE(1), FEATURE(2), 'ok')
+    %plot(FEATURE(3), FEATURE(4), 'oy')
+    %plot(FEATURE(5), FEATURE(6), 'or')
+    %plot(FEATURE(7), FEATURE(8), 'ob')
+    %plot(FEATURE(9), FEATURE(10), 'oc')
 
-    scale = [transfMatrix(1) transfMatrix(3) 0; transfMatrix(2) transfMatrix(4) 0];
-    translation = [transfMatrix(5) transfMatrix(6) 1];
-    ststruct = maketform('affine', [scale; translation]);
-    IAff = imtransform(image, ststruct, 'Size', [blockSize blockSize]);
+    A = [transfMatrix(1) transfMatrix(2); transfMatrix(3) transfMatrix(4)];
+    b = [transfMatrix(5) transfMatrix(6)];
+    Ainv = pinv(A);
+
+    newImage = zeros(64, 64);
+    for i = 1:64
+        for j = 1:64
+            p = Ainv * ([i j] - b)';
+            x = floor(p(1));
+            y = floor(p(2));
+
+            if x > 0 && x <= size(image, 2) && y > 0 && y <= size(image, 1)
+                newImage(j, i) = image(y, x);
+            end
+        end
+    end
     
-    processedImage = IAff;
+    %imshow(newImage);
+    processedImage = newImage;
 end

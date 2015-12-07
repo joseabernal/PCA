@@ -18,7 +18,7 @@ function [Favg] = FeatureNormalization(features, b0, threshold)
 
         Favg = tmp ./ N;
        
-        if (abs(Favg - Fprev) < threshold)
+        if ((abs(Favg - Fprev) < threshold) | (iter == 8))
             repeat = false;
         end
 

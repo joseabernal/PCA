@@ -37,7 +37,7 @@ blockSize = 64;
 % Calculate the affine transformation
 F = FeatureNormalization(features, b0, 0.01);
 
-imageFiles = [dir(fullfile(folder, '*.jpg')); dir(fullfile(folder, '*.JPG'))];
+imageFiles = dir(fullfile(folder, '*.jpg'));
 images = zeros(length(imageFiles), 320, 320);
 D = zeros(length(imageFiles), blockSize*blockSize);
 
@@ -47,7 +47,10 @@ for k = 1 : length(imageFiles)
     fullFileName = fullfile(folder, imageFiles(k).name);
     fprintf(1, 'Now reading %s\n', fullFileName);
     I = im2double(rgb2gray(imread(fullFileName)));
+    
     images(k, 1:size(I, 1), 1:size(I, 2)) = I;
+    fullFileName = fullfile(folder, imageFiles(k).name);
+    fprintf(1, 'Now reading %s\n', fullFileName);
     
     processedImage = ProcessImage(I, features(k, :), F, blockSize);
     D(k, :) = processedImage(:)';
@@ -68,7 +71,7 @@ k = 75; %we should iterate over this value according to sum^k(eigen)/sum^n(eigen
 reducedD = Dnorm * U;
 
 %% test section
-for i = 1 : 5
+for i = 1 : 10
     testImage = D(i*10, :);
     testImage = (testImage - mean(testImage));
 
