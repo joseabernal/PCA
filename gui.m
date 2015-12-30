@@ -53,6 +53,7 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
 % varargin   command line arguments to gui (see VARARGIN)
     global images
     global U
+    global meanImage
     global reducedD
     global names
     global gendersMap
@@ -75,6 +76,7 @@ function gui_OpeningFcn(hObject, ~, handles, varargin)
 
     PCAHandler = PCA;
     k = 100; %we should iterate over this value according to sum^k(eigen)/sum^n(eigen) >= 95%
+    meanImage = mean(D);
     [reducedD, U] =  PCAHandler.PerformPCA(D, k);
 
 % UIWAIT makes gui wait for user response (see UIRESUME)
@@ -96,13 +98,14 @@ varargout{1} = handles.output;
 function pushbutton1_Callback(hObject, eventdata, handles)
     global inputImage
     global U
+    global meanImage
 
     [fileName, filePath] = uigetfile('*.pgm', 'Select the image to process');
     if (strcmp(fileName, '') == 0)
         imageToShow = im2double(imread(strcat(filePath, fileName)));
         imshow(imageToShow, 'parent', handles.axes1)
     
-        inputImage = imageToShow(:)' * U;
+        inputImage = (imageToShow(:)' - meanImage) * U;
     end
 
 % hObject    handle to pushbutton1 (see GCBO)

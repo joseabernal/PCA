@@ -6,11 +6,12 @@ end
 function [Dreduced, U] = PerformPCA(D, k)
     Dnorm = zeros(size(D));
     
+    meanImage = mean(D);
     for i = 1:size(D, 1)
-        Dnorm(i, :) = D(i, :) - mean(D(i, :));
+        Dnorm(i, :) = (D(i, :) - meanImage);
     end
 
-    S = cov(Dnorm);
+    S = (Dnorm' * D)/(size(D, 1));
 
     % For face recognition, k < 100 (suggested by the guide)
     [U, ~] = eigs(S, k);

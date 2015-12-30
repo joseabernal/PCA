@@ -10,6 +10,8 @@ for k = 1 : length(images)
     D(k, :) = im2double(image(:))';
 end
 
+meanImage = mean(D);
+
 PCAHandler = PCA;
 k = 75; %we should iterate over this value according to sum^k(eigen)/sum^n(eigen) >= 95%
 [reducedD, U] =  PCAHandler.PerformPCA(D, k);
@@ -24,7 +26,7 @@ for i = 1 : length(testImages)
     testImage = testImage(:)';
 
     % Reduce the testImage
-    reducedTestImage = testImage * U;
+    reducedTestImage = (testImage - meanImage) * U;
 
     idx = PCAHandler.FindBestMatches(reducedTestImage, reducedD, 1);
     
